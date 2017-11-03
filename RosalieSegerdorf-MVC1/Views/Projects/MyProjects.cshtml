@@ -1,0 +1,63 @@
+﻿@model System.Collections.Generic.List<RosalieSegerdorf_MVC1.ViewModels.Project.ProjectsViewModel>
+
+@{
+    ViewBag.Title = "Projects";
+}
+
+
+<h2>My Projects</h2>
+<hr/>
+<ul class="nav nav-tabs">
+    <li role="presentation" class="active"><a href="#" id="active-project-btn">Aktive Projects</a></li>
+    <li role="presentation"><a href="#" id="inactive-project-btn">Inaktive Projects</a></li>
+</ul>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Project Leader</th>
+                <th>Platform</th>
+                <th>Employees</th>
+                <th>Release date</th>
+                <th>Admin</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in Model)
+            {
+                <tr class="@(project.IsActive ? "active-project" : "inactive-project")" style="display:@(project.IsActive ? "inital" : "none")">
+                    <td>@project.Title</td>
+                    <td>@project.ProjectLeader</td>
+                    <td>@project.Platform</td>
+                    <td>@project.AmountOfEmployees</td>
+                    <td>@project.ReleaseDate.ToShortDateString()</td>
+                    <td><a href="@Url.Action("Details", "Projects", new {id = project.Id})">Edit</a></td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+    @section scripts
+{
+        <script>
+            $(function () {
+                $('#active-project-btn').on('click',
+                    function () {
+                        $(this).parent().addClass('active');
+                        $('#inactive-project-btn').parent().removeClass('active');
+                        $('.active-project').show();
+                        $('.inactive-project').hide();
+                    });
+                $('#inactive-project-btn').on('click',
+                    function () {
+                        $(this).parent().addClass('active');
+                        $('#active-project-btn').parent().removeClass('active');
+                        $('.inactive-project').show();
+                        $('.active-project').hide();
+                    });
+            })
+        </script>
+    }

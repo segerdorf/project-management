@@ -1,0 +1,201 @@
+﻿@model RosalieSegerdorf_MVC1.ViewModels.Project.ProjectDetailsViewModel
+
+@{
+    ViewBag.Title = "Details";
+
+    dynamic formControlAttributes = new { @class = "form-control", @readonly = "readonly" };
+    if (User.IsInRole("Admin")||User.IsInRole("ProjectLeader"))
+    {
+        formControlAttributes = new { @class = "form-control"};
+    }
+
+}
+
+<h2>@Model.Title</h2>
+<hr/>
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+
+    @Html.HiddenFor(m => m.Id)
+    @Html.ValidationSummary(true, "", new { @class = "text-danger" })
+    <div class="row">
+        <div class="col-sm-6 form-horizontal">
+            <div class="form-group">
+                @Html.LabelFor(model => model.Title, htmlAttributes: new { @class = "control-label col-sm-4 col-md-3" })
+                <div class="col-sm-8 col-md-9">
+                    @Html.EditorFor(model => model.Title, new { htmlAttributes = formControlAttributes })
+                    @Html.ValidationMessageFor(model => model.Title, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Platform, htmlAttributes: new { @class = "control-label col-sm-4 col-md-3" })
+                <div class="col-sm-8 col-md-9">
+                    @Html.EditorFor(model => model.Platform, new { htmlAttributes = formControlAttributes })
+                    @Html.ValidationMessageFor(model => model.Platform, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.ProjectLeader, htmlAttributes: new { @class = "control-label col-sm-4 col-md-3" })
+                <div class="col-sm-8 col-md-9">
+                    @Html.TextBoxFor(model => model.ProjectLeader, "", new { @class = "form-control", @readonly = "readonly" })
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#changeProjectLeaderModal">Change Project Leader</button>
+                    }
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="col-sm-4 col-md-3"></label>
+                <div class="col-sm-8 col-md-9">
+                    <div class="checkbox">
+                        @if (User.IsInRole("Admin") || User.IsInRole("ProjectLeader"))
+                        {
+                            @Html.CheckBoxFor(model => model.IsActive)
+                        }
+                        else
+                        {
+                            @Html.CheckBoxFor(model => model.IsActive, new { disabled = "disabled" })
+                        }
+                        @Html.LabelFor(c => c.IsActive)
+                    </div>
+                </div>
+            </div>
+
+        </div>
+        <div class="col-sm-6 form-horizontal">
+            <div class="form-group">
+                @Html.LabelFor(model => model.StartDate, htmlAttributes: new { @class = "control-label col-sm-4 col-md-3" })
+                <div class="col-sm-8 col-md-9">
+                    @Html.EditorFor(model => model.StartDate, new { htmlAttributes = formControlAttributes, @class = "date-picker" })
+                    @Html.ValidationMessageFor(model => model.StartDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.ReleaseDate, htmlAttributes: new { @class = "control-label col-sm-4 col-md-3" })
+                <div class="col-sm-8 col-md-9">
+                    @Html.EditorFor(model => model.ReleaseDate, new { htmlAttributes = formControlAttributes, @class = "date-picker" })
+                    @Html.ValidationMessageFor(model => model.ReleaseDate, "", new { @class = "text-danger" })
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Description, htmlAttributes: new { @class = "control-label col-sm-4 col-md-3" })
+                <div class="col-sm-8 col-md-9">
+                    @if (User.IsInRole("Admin")||(User.IsInRole("ProjectLeader")))
+                    {
+                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", cols = "39", rows = "4"})
+                        @Html.ValidationMessageFor(model => model.Description, "", new {@class = "text-danger"})
+
+                    }
+                    else
+                    {
+                        @Html.TextAreaFor(model => model.Description, new { @class = "form-control", @readonly = "readonly", cols = "39", rows = "4", disabled = "disabled" })
+
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+
+    if (User.IsInRole("Admin") || (User.IsInRole("ProjectLeader")))
+    {
+         <div class="row">
+             <div class="col-sm-12 text-right">
+                 <input type="submit" value="Save" class="btn btn-primary"/>
+             </div>
+         </div>  
+     }
+}
+
+<h4>
+    Employees (@Model.Employees.Count)
+    @if (User.IsInRole("ProjectLeader")|| User.IsInRole("Admin"))
+    {
+        <button type="button" class="btn btn-default" data-toggle="modal" data-target="#addEmployeeModal">Add</button>
+    }
+</h4>
+
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead>
+        <tr>
+            <th>First name</th>
+            <th>Last name</th>
+            <th>Domain</th>
+            <th>Mail</th>
+            <th>Phone</th>
+            @if (User.IsInRole("ProjectLeader") || User.IsInRole("Admin"))
+            {
+                <th>Admin</th>
+            }
+        </tr>
+        </thead>
+        <tbody>
+        @foreach (var employee in Model.Employees)
+        {
+            <tr>
+                <td>@employee.FirstName</td>
+                <td>@employee.LastName</td>
+                <td>@string.Join(", ", employee.Competences.Select(c => c.Expertise))</td>
+                <td>@employee.Email</td>
+                <td>@employee.PhoneNumber</td>
+                @if (User.IsInRole("ProjectLeader") || User.IsInRole("Admin"))
+                {
+                    <td><a href="#" onclick="if(confirm('Are you sure you want to delete @employee.FirstName?')) window.location='@Url.Action("RemoveUser", "Projects", new {id = Model.Id, userId = employee.Id})';return false;">Remove</a></td>
+                }
+            </tr>
+        }
+        </tbody>
+    </table>
+</div>
+
+<div class="modal fade" id="addEmployeeModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        @using (Html.BeginForm("AddEmployee", "Projects", null, FormMethod.Post, new { @class = "modal-content" }))
+        { 
+            @Html.Hidden("id", Model.Id)
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Add Employee</h4>
+            </div>
+            <div class="modal-body">
+                <label>Employee</label>
+                @(Html.DropDownList("userId", new SelectList(ViewBag.AvailableEmployees, "Value", "Text"), new {@class = "form-control"}))
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Add</button>
+            </div>
+        }
+    </div>
+</div>
+
+
+<div class="modal fade" id="changeProjectLeaderModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel">
+    <div class="modal-dialog" role="document">
+        @using (Html.BeginForm("ChangeProjectLeader", "Projects", null, FormMethod.Post, new { @class = "modal-content" }))
+        { 
+            @Html.Hidden("id", Model.Id)
+            <div class="modal-header">
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <h4 class="modal-title" id="myModalLabel">Change Project Leader</h4>
+            </div>
+            <div class="modal-body">
+                <label>Select Project Leader</label>
+                @(Html.DropDownList("userId", new SelectList(ViewBag.ProjectLeaders, "Value", "Text"), new {@class = "form-control"}))
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-default" data-dismiss="modal">Close</button>
+                <button type="submit" class="btn btn-primary">Save</button>
+            </div>
+        }
+    </div>
+</div>
+
+
+

@@ -1,0 +1,185 @@
+﻿@using Microsoft.AspNet.Identity
+@using RosalieSegerdorf_MVC1.Data.Models
+@using RosalieSegerdorf_MVC1.Helpers
+@model RosalieSegerdorf_MVC1.ViewModels.User.UserDetailsViewModel
+
+@{
+    ViewBag.Title = "Details";
+}
+
+<h2>@Model.FirstName @Model.LastName</h2>
+<hr/>
+
+
+@using (Html.BeginForm())
+{
+    @Html.AntiForgeryToken()
+    
+    @Html.HiddenFor(m => m.Id)
+    @Html.ValidationSummary(true, "", new {@class = "text-danger"})
+
+    <div class="row">
+        <div class="col-md-6 form-horizontal">
+            <div class="form-group">
+                @Html.LabelFor(model => model.FirstName, htmlAttributes: new {@class = "control-label col-sm-2 col-md-3" })
+                <div class="col-sm-10 col-md-9">
+                    @Html.EditorFor(model => model.FirstName, new {htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.FirstName, "", new {@class = "text-danger"})
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.LastName, htmlAttributes: new {@class = "control-label col-sm-2 col-md-3" })
+                <div class="col-sm-10 col-md-9">
+                    @Html.EditorFor(model => model.LastName, new {htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.LastName, "", new {@class = "text-danger"})
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.Address, htmlAttributes: new {@class = "control-label col-sm-2 col-md-3"})
+                <div class="col-sm-10 col-md-9">
+                    @Html.EditorFor(model => model.Address, new {htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Address, "", new {@class = "text-danger"})
+                </div>
+            </div>
+            @if (User.IsInRole("Admin"))
+            {
+                <div class="form-group">
+                    <label class="col-sm-2 col-md-3"></label>
+                    <div class="col-sm-5">
+                        <div class="checkbox">
+                            @Html.CheckBoxFor(model => model.IsAdmin)
+                            @Html.LabelFor(c => c.IsAdmin)
+                        </div>
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label class="col-sm-2 col-md-3"></label>
+                    <div class="col-sm-5">
+                        <div class="checkbox">
+                            @Html.CheckBoxFor(model => model.IsProjectLeader)
+                            @Html.LabelFor(c => c.IsProjectLeader)
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+        <div class="col-md-6 form-horizontal">
+            <div class="form-group">
+                @Html.LabelFor(model => model.Email, htmlAttributes: new {@class = "control-label col-sm-2 col-md-3" })
+                <div class="col-sm-10 col-md-9">
+                    @Html.EditorFor(model => model.Email, new {htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Email, "", new {@class = "text-danger"})
+                </div>
+            </div>
+            
+            <div class="form-group">
+                @Html.LabelFor(model => model.Phone, htmlAttributes: new {@class = "control-label col-sm-2 col-md-3" })
+                <div class="col-sm-10 col-md-9">
+                    @Html.EditorFor(model => model.Phone, new { htmlAttributes = new { @class = "form-control" } })
+                    @Html.ValidationMessageFor(model => model.Phone, "", new {@class = "text-danger"})
+                </div>
+            </div>
+
+            <div class="form-group">
+                @Html.LabelFor(model => model.StartOfEmployment, htmlAttributes: new {@class = "control-label col-sm-2 col-md-3" })
+                <div class="col-sm-10 col-md-9">
+                @if (User.IsInRole("Admin"))
+                {
+                    @Html.EditorFor(model => model.StartOfEmployment, new {htmlAttributes = new {@class = "form-control date-picker"}})
+                    @Html.ValidationMessageFor(model => model.StartOfEmployment, "", new {@class = "text-danger"})
+                }
+                else
+                {
+                    @Html.EditorFor(model => model.StartOfEmployment, new { htmlAttributes = new { @class = "form-control", @readonly = "readonly" } })
+
+                }
+                </div>
+            </div>
+            <div class="form-group">
+                @Html.LabelFor(model => model.Competences, htmlAttributes: new {@class = "control-label col-sm-2 col-md-3" })
+                <div class="col-sm-10 col-md-9">
+                    @foreach (var competence in Model.Competences)
+                    {
+                        if (!Model.Competences.Any())
+                        {
+                            <p class="text-muted">No competenses added yet</p>
+                        }
+
+                        <p class="form-control-static">
+                            @competence.Expertise.EnumToString() (@competence.YearOfExperience years)
+                            @if (User.IsInRole("Admin"))
+                            {
+                                <small><a href="@Url.Action("Edit", "Competences", new {id = competence.Id})"> - Edit</a></small>
+                            }
+                        </p>
+                    }
+                    @if (User.IsInRole("Admin"))
+                    {
+                        <p><a href="@Url.Action("Create", "Competences", new {userId = Model.Id})">+ Add</a></p>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>   
+
+    <div class="row">
+        <div class="col-md-12 text-right">
+            <a href="@Url.Action("ResetPassword", "Users", new {id = Model.Id})" class="btn btn-default">Reset Password</a>
+            <input type="submit" value="Save" class="btn btn-primary"/>
+        </div>
+    </div>
+}
+
+<ul class="nav nav-tabs">
+    <li role="presentation" class="active"><a href="#" id="active-project-btn">Active Projects</a></li>
+    <li role="presentation"><a href="#" id="inactive-project-btn">Inactive Projects</a></li>
+</ul>
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead>
+            <tr>
+                <th>Title</th>
+                <th>Project leader</th>
+                <th>Platform</th>
+                <th>Employees</th>
+                <th>Release date</th>
+
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var project in Model.Projects)
+            {
+                <tr class="@(project.IsActive ? "active-project" : "inactive-project")" style="display:@(project.IsActive ? "inital" : "none")">
+                    <td><a href="@Url.Action("Details", "Projects", new {id = project.Id})">@project.Title</a></td>
+                    <td>@($"{project.ProjectLeader.FirstName} {project.ProjectLeader.LastName}")</td>
+                    <td>@project.Platform</td>
+                    <td>@project.Employees.Count</td>
+                    <td>@project.ReleaseDate.ToShortDateString()</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+    @section scripts
+{
+        <script>
+            $(function () {
+                $('#active-project-btn').on('click',
+                    function () {
+                        $(this).parent().addClass('active');
+                        $('#inactive-project-btn').parent().removeClass('active');
+                        $('.active-project').show();
+                        $('.inactive-project').hide();
+                    });
+                $('#inactive-project-btn').on('click',
+                    function () {
+                        $(this).parent().addClass('active');
+                        $('#active-project-btn').parent().removeClass('active');
+                        $('.inactive-project').show();
+                        $('.active-project').hide();
+                    });
+            })
+        </script>
+    }

@@ -1,0 +1,68 @@
+﻿@model List<RosalieSegerdorf_MVC1.ViewModels.User.UsersViewModel>
+
+@{
+    ViewBag.Title = "Employees";
+}
+
+<h2>Employees</h2>
+
+@if (User.IsInRole("Admin"))
+{
+    <div class="pull-right">
+        <a href="@Url.Action("Create", "Users")" class="btn btn-default">Add</a>
+    </div>
+}
+<div class="table-responsive">
+    <table class="table table-bordered table-striped table-hover">
+        <thead>
+            <tr>
+                <th>First name</th>
+                <th>Last name</th>
+                <th>Competences</th>
+                <th>Email</th>
+                <th>Phone</th>
+                @if (User.IsInRole("Admin"))
+                {
+                    <th>Admin</th>
+                }
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var employee in Model)
+            {
+                <tr>
+                    <td>@employee.FirstName</td>
+                    <td>@employee.LastName</td>
+                    <td>@string.Join(", ", employee.Competences.Select(c => c.Expertise))</td>
+                    <td>@employee.Email</td>
+                    <td>@employee.Phone</td>
+                    @if (User.IsInRole("Admin"))
+                {
+                        <td>
+                            <a href="@Url.Action("Details", "Users", new {id = employee.Id})">Edit</a> /
+                            <a href="#" class="delete-user-btn" data-user-id="@employee.Id" data-can-be-deleted="@(employee.ProjectLeaderFor.Any() ? "false" : "true")" data-projects="@(string.Join(", ", employee.ProjectLeaderFor.Select(p => p.Title)))">Remove</a>
+                        </td>
+                    }
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+@section scripts {
+    <script>
+        $(function() {
+            $('.delete-user-btn').on('click',
+                function () {
+                    var btn = $(this);
+
+                    if (!btn.data('can-be-deleted')) {
+                        alert('The user can\'t be deleted until the following projects have changed project leader: ' +
+                            btn.data('projects'));
+                        return;
+                    }
+                    if (confirm('Are you sure you want to delete the user?'))
+                        window.location = '@Url.Action("Delete", "Users")?id=' + btn.data('user-id');
+                });
+        });
+    </script>
+}
